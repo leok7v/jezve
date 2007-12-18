@@ -1,0 +1,12 @@
+* Use on your own risk.
+* The application skeleton is located under src/org/jezve/app/ directory
+* Utilitiy code is located under src/org/jezve/util/ directory
+* Snapshot of Tango Icon Library from http://tango.freedesktop.org is used
+  and located under
+  app/resources/16x16, 22x22, 32x32
+* IntelliJ Idea/Eclispe projects and/or ant build scripts are NOT and will NOT be
+  provided.
+* Code is kept 1.4.2 java compatible (does not use generics yet) but
+  no guarantees is made that it will behave correctly on 1.4.x JREs on any
+  of the platform. Testing is done only for java >= 1.5.
+  
