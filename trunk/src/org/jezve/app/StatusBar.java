@@ -27,10 +27,7 @@
 
 package org.jezve.app;
 
-import org.jezve.util.Misc;
-import org.jezve.util.Platform;
-import org.jezve.util.Debug;
-import org.jezve.util.MacOSX;
+import org.jezve.util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -111,20 +108,19 @@ public final class StatusBar extends JComponent {
         private class Dragger extends MouseAdapter implements MouseMotionListener {
 
             private Point pt = null;
-            private Dimension size = null;
 
             public void mouseDragged(MouseEvent e) {
                 if (pt != null) {
-                    int dx = e.getPoint().x - pt.x;
-                    int dy = e.getPoint().y - pt.y;
-                    getJFrame().setSize((int)size.getWidth() + dx, (int)size.getHeight() + dy);
-//                  Debug.traceln("setSize " + new Dimension((int)size.getWidth() + dx, (int)size.getHeight() + dy));
+                    Point p = getScreenLocation(e);
+                    JFrame frame = getJFrame();
+                    Dimension size = frame.getSize();
+                    frame.setSize(size.width + (p.x - pt.x), size.height + (p.y - pt.y));
+                    pt = p;
                 }
             }
 
             public void mousePressed(MouseEvent e) {
-                pt = e.getPoint();
-                size = getJFrame().getSize();
+                pt = getScreenLocation(e);
             }
 
             public void mouseReleased(MouseEvent e) {
@@ -139,7 +135,13 @@ public final class StatusBar extends JComponent {
                 return (JFrame)c;
             }
 
-            public void mouseMoved(MouseEvent mouseEvent) { }
+            private Point getScreenLocation(MouseEvent e) {
+                Point c = e.getPoint();
+                Point p = GrowBox.this.getLocationOnScreen();
+                return new Point(p.x + c.x, p.y + c.y);
+            }
+
+            public void mouseMoved(MouseEvent e) { }
         }
 
         GrowBox() {
