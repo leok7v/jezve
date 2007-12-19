@@ -170,9 +170,7 @@ public final class StatusBar extends JComponent {
                 // system grow box was broken prio Mac OS X and java 1.5
                 // in 10.5 value of System.setProperty("apple.awt.showGrowBox", "false");
                 // is ignored and growbox always intrudes and is painted...
-                if (Platform.getOsVersion() < 10.5 && MacOSX.isMetal()) {
-                    g2d.setColor(Color.RED);
-                    g2d.fill(getBounds());
+                if (MacOSX.isMetal()) {
                     int x = 0;
                     int y = height - 21;
                     for (int i = 0; i < 15; i++) {
