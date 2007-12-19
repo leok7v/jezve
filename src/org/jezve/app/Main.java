@@ -37,7 +37,9 @@ import java.awt.*;
 public final class Main implements Runnable {
 
     public static final String APPLICATION = Strings.getApplicationString("application.label");
-    private static boolean initialized = setSystemLookAndFeel(APPLICATION, true);
+    // on Leopard all apps have "metal" style L&F:
+    private static boolean initialized = setSystemLookAndFeel(APPLICATION,
+            Platform.isMac() && Platform.getOsVersion() < 10.5);
     private static ArrayList args = null;
     private static Set options = new HashSet();
 
