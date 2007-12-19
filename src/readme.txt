@@ -9,4 +9,4 @@
 * Code is kept 1.4.2 java compatible (does not use generics yet) but
   no guarantees is made that it will behave correctly on 1.4.x JREs on any
   of the platform. Testing is done only for java >= 1.5.
-  
+* see wiki for build instructions.  
