@@ -1,4 +1,4 @@
-#How to build jezve/app on Mac OS X
+HowToBuildOnMacOSX
 
 = Introduction =
 
