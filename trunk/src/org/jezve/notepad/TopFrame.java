@@ -11,7 +11,7 @@ class TopFrame extends JFrame {
 
     private ComponentListener componentListenner;
     private WindowAdapter frameListener;
-    
+
     private TextView view;
     private String title;
 
@@ -44,7 +44,7 @@ class TopFrame extends JFrame {
             public void componentResized(ComponentEvent e) { resized(); }
             public void componentMoved(ComponentEvent e) { resized(); }
         };
-        
+
         frameListener = new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 Actions.postEvent("commandFileExit");
@@ -90,7 +90,7 @@ class TopFrame extends JFrame {
         super.removeNotify();
     }
 
-    public void updateCommandState(Map<String, Boolean> m) {
+    public void updateCommandState(Map m) {
         m.put("commandViewZoomIn", Boolean.TRUE);
         m.put("commandViewZoomOut", Boolean.TRUE);
     }

@@ -9,9 +9,9 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.*;
 import javax.swing.Timer;
 
-final class Actions extends HashMap<String, AbstractAction> {
+final class Actions extends HashMap {
 
-    private static List<Object> listeners = new LinkedList<Object>();
+    private static List listeners = new LinkedList();
     private static boolean enabled = true;
     private static Actions instance = new Actions();
 
@@ -34,7 +34,7 @@ final class Actions extends HashMap<String, AbstractAction> {
 
     public static AbstractAction getAction(String method) {
         assert EventQueue.isDispatchThread();
-        return instance.get(method);
+        return (AbstractAction)instance.get(method);
     }
 
     public static void addListener(Object listener) {
@@ -95,7 +95,7 @@ final class Actions extends HashMap<String, AbstractAction> {
     }
 
     static JMenuBar createMenuBar() {
-        Map<String, JMenu> menus = new HashMap<String, JMenu>();
+        Map menus = new HashMap();
         JMenuBar mb = new JMenuBar();
         // TODO: commands below should be moved to localizable properties bundle
         addMenu(mb, menus, "&File|&New", "commandFileNew");
@@ -171,7 +171,7 @@ final class Actions extends HashMap<String, AbstractAction> {
         tb.add(btn);
     }
 
-    private static void addMenu(JMenuBar mb, Map<String, JMenu> menus, String command,
+    private static void addMenu(JMenuBar mb, Map menus, String command,
             String action) {
         StringTokenizer st = new StringTokenizer(command, "|");
         String top = st.nextToken();
@@ -312,7 +312,7 @@ final class Actions extends HashMap<String, AbstractAction> {
             public void run() { updateCommandState(); }
         });
         long time = System.currentTimeMillis();
-        HashMap<String, Boolean> state = new HashMap<String, Boolean>(instance.size() * 3 / 2);
+        HashMap state = new HashMap(instance.size() * 3 / 2);
         Object[] p = new Object[]{state};
         if (enabled) {
             for (Iterator i = listeners.iterator(); i.hasNext(); ) {
@@ -332,18 +332,20 @@ final class Actions extends HashMap<String, AbstractAction> {
             }
         }
         boolean changed = false;
-        for (String method : instance.keySet()) {
+        for (Iterator i = instance.keySet().iterator(); i.hasNext(); ) {
+            String method = (String)i.next();
             if (!Boolean.TRUE.equals(state.get(method))) {
-                AbstractAction aa = instance.get(method);
+                AbstractAction aa = (AbstractAction)instance.get(method);
                 if (aa.isEnabled()) {
                     changed = true;
                     aa.setEnabled(false);
                 }
             }
         }
-        for (String method : state.keySet()) {
+        for (Iterator i = state.keySet().iterator(); i.hasNext(); ) {
+            String method = (String)i.next();
             if (Boolean.TRUE.equals(state.get(method))) {
-                AbstractAction aa = instance.get(method);
+                AbstractAction aa = (AbstractAction)instance.get(method);
                 if (aa != null && !aa.isEnabled()) {
                     changed = true;
                     aa.setEnabled(true);
