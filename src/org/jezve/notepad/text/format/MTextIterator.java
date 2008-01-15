@@ -315,10 +315,10 @@ public final class MTextIterator implements AttributedCharacterIterator, Cloneab
     }
 
     /**
-     * Returns a map with the attributes defined on the current
+     * Returns a map <Attribute, Object> with the attributes defined on the current
      * character.
      */
-    public Map<Attribute, Object> getAttributes() {
+    public Map getAttributes() {
         return fStyleCache.getStyle(fCharIter.getIndex());
     }
 
@@ -337,7 +337,7 @@ public final class MTextIterator implements AttributedCharacterIterator, Cloneab
      * iterator's text range. The set is empty if no
      * attributes are defined.
      */
-    public Set<Attribute> getAllAttributeKeys() {
+    public Set getAllAttributeKeys() {
         throw new Error("Implement this method!");
     }
 

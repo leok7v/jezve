@@ -10,32 +10,21 @@ public final class AttributeSet implements Set {
 
     private static final String errString = "AttributeSet is immutable.";
 
-    private HashSet elements;
+    private Set elements;
 
     public static final AttributeSet EMPTY_SET = new AttributeSet();
+    public static final Set EMPTY_HASHSET = new HashSet();
 
-    private AttributeSet(Collection c) {
-        elements = new HashSet(c);
-    }
-
-    static AttributeSet createKeySet(Set set) {
-        return new AttributeSet(set);
+    private AttributeSet(Set c) {
+        elements = Collections.unmodifiableSet(c);
     }
 
     public AttributeSet() {
-        elements = new HashSet();
+        this(EMPTY_HASHSET);
     }
 
-    public AttributeSet(Object o) {
-        elements = new HashSet(1, 1);
-        elements.add(o);
-    }
-
-    public AttributeSet(Object[] elems) {
-        elements = new HashSet(elems.length, 1);
-        for (Object o: elems) {
-            elements.add(o);
-        }
+    public AttributeSet(final Object o) {
+        this(new HashSet(1, 1){{ add(o); }});
     }
 
     /**
@@ -57,16 +46,11 @@ public final class AttributeSet implements Set {
     }
 
     public boolean equals(Object rhs) {
-        try {
-            return equals((AttributeSet)rhs);
-        }
-        catch (ClassCastException e) {
-            return false;
-        }
+        return rhs instanceof AttributeSet && equals((AttributeSet)rhs);
     }
 
     public boolean equals(AttributeSet rhs) {
-        return rhs != null && elements.equals(rhs.elements);
+        return rhs != null && (this == rhs || elements.equals(rhs.elements));
     }
 
     /**
@@ -184,10 +168,8 @@ public final class AttributeSet implements Set {
      * @param o the element to add
      * @return an AttributeSet like this one, with <code>element</code> added
      */
-    public AttributeSet addElement(Object o) {
-        HashSet set = (HashSet)elements.clone();
-        set.add(o);
-        return new AttributeSet(set);
+    public AttributeSet addElement(final Object o) {
+        return new AttributeSet(new HashSet(elements) {{ add(o); }});
     }
 
     /**
@@ -196,23 +178,20 @@ public final class AttributeSet implements Set {
      * @param s the set to union with
      * @return an AttributeSet of the elements in this set or in <code>s</code>
      */
-    public AttributeSet unionWith(AttributeSet s) {
-        HashSet set = (HashSet)elements.clone();
-        for (Object next : s) {
-            set.add(next);
-        }
-        return new AttributeSet(set);
+    public AttributeSet unionWith(final AttributeSet s) {
+        return new AttributeSet(new HashSet(elements) {{ addAll(s.elements); }});
     }
 
     /**
      * Return an AttributeSet which is the intersection of this set with the given set.
      *
      * @param s the set to intersect with
-     * @return an AttributeSet of the elements in this set which are in <code>s</code> 
+     * @return an AttributeSet of the elements in this set which are in <code>s</code>
      */
     public AttributeSet intersectWith(AttributeSet s) {
         HashSet set = new HashSet();
-        for (Object next : s) {
+        for (Iterator i = s.iterator(); i.hasNext(); ) {
+            Object next = i.next();
             if (elements.contains(next)) {
                 set.add(next);
             }
@@ -226,11 +205,7 @@ public final class AttributeSet implements Set {
      * @param s the set of elements to exclude
      * @return an AttributeSet of the elements in this set which are not in <code>s</code>
      */
-    public AttributeSet subtract(AttributeSet s) {
-        HashSet set = (HashSet)elements.clone();
-        for (Object value : s) {
-            set.remove(value);
-        }
-        return new AttributeSet(set);
+    public AttributeSet subtract(final AttributeSet s) {
+        return new AttributeSet(new HashSet(elements) {{ removeAll(s.elements); }});
     }
 }

@@ -23,7 +23,6 @@ public final class AttributeMap implements java.util.Map {
     private static final int LOAD_FACTOR = 1;
 
     private HashMap styles;
-    private AttributeSet cachedKeySet = null;
     private Collection cachedValueCollection = null;
     private Set cachedEntrySet = null;
 
@@ -195,18 +194,6 @@ public final class AttributeMap implements java.util.Map {
     }
 
     /**
-     * Return an AttributeSet containing every key in this AttributeMap.
-     *
-     * @return an AttributeSet containing every key in this AttributeMap
-     */
-    public AttributeSet getKeySet() {
-        if (cachedKeySet == null) {
-            cachedKeySet = AttributeSet.createKeySet(styles.keySet());
-        }
-        return cachedKeySet;
-    }
-
-    /**
      * Return a Collection containing every value in this AttributeMap.
      *
      * @return a Collection containing every value in this AttributeMap
@@ -229,7 +216,7 @@ public final class AttributeMap implements java.util.Map {
     }
 
     public boolean equals(Object rhs) {
-        return rhs == this || rhs instanceof AttributeMap && styles.equals(((AttributeMap)rhs).styles); 
+        return rhs == this || rhs instanceof AttributeMap && styles.equals(((AttributeMap)rhs).styles);
     }
 
     public int hashCode() {
@@ -324,7 +311,8 @@ public final class AttributeMap implements java.util.Map {
         // attributes instead?
 
         HashMap map = null;
-        for (Object current : attributes) {
+        for (Iterator i = attributes.iterator(); i.hasNext(); ) {
+            Object current = i.next();
             if (current != null && styles.containsKey(current)) {
                 if (map == null) {
                     map = new HashMap(styles.size(), LOAD_FACTOR);
@@ -354,14 +342,15 @@ public final class AttributeMap implements java.util.Map {
      * are also in the Set.  The set must not contain null.
      */
     public AttributeMap intersectWith(Set attributes) {
-        
+
         // For now, forget about optimizing for the case when
         // the return value is equivalent to this set.
 
         HashMap map = new HashMap(Math.min(attributes.size(), styles.size()), LOAD_FACTOR);
 
         if (attributes.size() < styles.size()) {
-            for (Object current : attributes) {
+            for (Iterator i = attributes.iterator(); i.hasNext(); ) {
+                Object current = i.next();
                 if (current != null) {
                     Object value = styles.get(current);
                     if (value != null) {
@@ -371,7 +360,8 @@ public final class AttributeMap implements java.util.Map {
             }
         }
         else {
-            for (Object current : keySet()) {
+            for (Iterator i = keySet().iterator(); i.hasNext(); ) {
+                Object current = i.next();
                 if (attributes.contains(current)) {
                     map.put(current, styles.get(current));
                 }

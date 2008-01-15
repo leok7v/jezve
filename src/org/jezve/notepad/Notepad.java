@@ -43,7 +43,7 @@ class Notepad implements Runnable {
         return true;
     }
 
-    public void updateCommandState(Map<String, Boolean> m) {
+    public void updateCommandState(Map m) {
         m.put("commandFileNew", Boolean.TRUE);
         m.put("commandFileOpen", Boolean.TRUE);
         m.put("commandFileClose", Boolean.TRUE);
