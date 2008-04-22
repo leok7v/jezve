@@ -55,6 +55,7 @@ public final class Controller {
     public static void commandFileExit() {
         commandFileClose(true);
         Debug.traceln("commandFileExit");
+        UserSettings.flushNow();
         System.exit(0);
     }
 
