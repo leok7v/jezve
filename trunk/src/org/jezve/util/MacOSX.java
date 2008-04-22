@@ -98,7 +98,7 @@ public final class MacOSX {
         return isMetal;
     }
 
-    public static void setSystemLookAndFeel(String name, boolean metal) {
+    public static void setSystemProperties(String name, boolean metal) {
         // http://developer.apple.com/releasenotes/Java/java141/system_properties/chapter_4_section_3.html
         assert Platform.isMac();
         assert !isPlafInitialized;
@@ -106,8 +106,10 @@ public final class MacOSX {
         if (metal) {
             // GrowBox painting is broken in Java prio to 1.6
             // StatusBar will paint it by hand.
+/*
             System.setProperty("apple.awt.brushMetalLook", "true");
             System.setProperty("apple.awt.brushMetalRounded", "true");
+*/
             System.setProperty("apple.awt.showGrowBox", "false");
             System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
         }

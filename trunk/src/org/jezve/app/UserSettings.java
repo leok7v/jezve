@@ -51,10 +51,22 @@ public final class UserSettings {
     private static boolean isDirty;
 
     public static void sync() {
-        flush(true);
+        Misc.invokeLater(2000, new Runnable(){
+            public void run() {
+                flush(true);
+            }
+        });
     }
 
     public static void flush() {
+        Misc.invokeLater(2000, new Runnable(){
+            public void run() {
+                flush(false);
+            }
+        });
+    }
+
+    public static void flushNow() {
         flush(false);
     }
 
@@ -147,9 +159,10 @@ public final class UserSettings {
                     getUser().store(os, Main.APPLICATION.toLowerCase() + " preferences");
                     os.flush();
                     isDirty = false;
-                    if (sync) {
-                        load();
-                    }
+//                  Debug.traceln("UserSettings.flushed");
+                }
+                if (sync) {
+                    load();
                 }
                 return;
             } catch (IOException e) {
@@ -174,6 +187,7 @@ public final class UserSettings {
                 if (prefs.exists()) {
                     is = new FileInputStream(prefs);
                     user.load(is);
+//                  Debug.traceln("UserSettings.loaded");
                 }
                 return;
             } catch (IOException e) {

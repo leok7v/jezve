@@ -67,7 +67,18 @@ public final class Call {
         }
     }
 
-    /* absense of method treated as fatal error */
+    /* absense of class is treated as fatal error */
+
+    public static Class getClass(String name) {
+        try {
+            return Class.forName(name);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new Error(e);
+        }
+    }
+
+    /* absense of method is treated as fatal error */
 
     public static Method getMethod(Class c, String method, Class[] signature) {
         try {

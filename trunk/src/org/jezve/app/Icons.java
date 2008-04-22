@@ -34,6 +34,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 public final class Icons {
 
@@ -90,10 +92,41 @@ public final class Icons {
         return readBytes(location);
     }
 
+    public static InputStream getResourceAsStream(String location) {
+        try {
+            InputStream s;
+            java.net.URL url = Icons.class.getResource(location);
+            assert url != null : location;
+            String u = url.getFile();
+            // see: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4730642
+            if (u.toLowerCase().indexOf(".jar!/") >= 0) {
+                int sep = u.lastIndexOf('!');
+                String j = u.substring(0, sep);
+                if (j.startsWith("jar:file:")) {
+                    j = j.substring("jar:file:".length());
+                }
+                if (j.startsWith("file:")) {
+                    j = j.substring("file:".length());
+                }
+                String e = u.substring(sep + 2);
+                JarFile jar = new JarFile(j);
+                ZipEntry ze = jar.getEntry(e);
+                s = jar.getInputStream(ze);
+            } else {
+                s = Icons.class.getResourceAsStream(location);
+            }
+            assert s != null : location;
+            return s;
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+
     private static byte[] readBytes(String location) {
         InputStream s = null;
         try {
-            s = Icons.class.getResourceAsStream(location);
+            s = getResourceAsStream(location);
             assert  s != null : location;
             assert s instanceof BufferedInputStream;
             return IO.readFully(s);

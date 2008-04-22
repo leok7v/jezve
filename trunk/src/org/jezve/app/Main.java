@@ -97,6 +97,36 @@ public final class Main implements Runnable {
         return ((String)args.get(i)).trim();
     }
 
+/*
+    public static class LookAndFeel extends SubstanceBusinessBlackSteelLookAndFeel {
+        public boolean getSupportsWindowDecorations() {
+            return !Platform.isMac();
+        }
+    }
+
+    public static class MenuBarUI extends SubstanceMenuBarUI {
+
+        public static ComponentUI createUI(JComponent c) {
+            if (Platform.isMac()) {
+                try {
+                    //return new apple.laf.AquaLookAndFeel().getDefaults().getUI(c);
+                    Class aqua = Call.getClass("apple.laf.AquaLookAndFeel");
+                    javax.swing.LookAndFeel laf = (javax.swing.LookAndFeel)aqua.newInstance();
+                    return laf.getDefaults().getUI(c);
+                } catch (Throwable e) { // ClassNotFoundException, IllegalAccessException, InstantiationException
+                    throw new Error(e);
+                }
+            }
+            return new SubstanceMenuBarUI();
+        }
+
+        public void update(java.awt.Graphics g, JComponent c) {
+            super.update(g, c);
+        }
+
+    }
+*/
+
     private static boolean setSystemLookAndFeel(String name, boolean metal) {
         /* it is important that some system properties e.g. apple.awt.brushMetalLook
            are set before any code from ATW is executed. E.g. having static Dimension field
@@ -109,17 +139,25 @@ public final class Main implements Runnable {
           */
         try {
             if (Platform.isMac()) {
-                MacOSX.setSystemLookAndFeel(name, metal);
+                MacOSX.setSystemProperties(name, metal);
             }
             System.setProperty("swing.handleTopLevelPaint", "true");
             System.setProperty("sun.awt.noerasebackground", "true");
             System.setProperty("swing.disableFileChooserSpeedFix", "true");
             Toolkit.getDefaultToolkit().setDynamicLayout(true);
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             // see: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4525475
             UIManager.put("FileChooser.readOnly", Boolean.TRUE);
+
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+/*
+            UIManager.setLookAndFeel(new LookAndFeel());
+*/
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
+/*
+            SubstanceLookAndFeel.setCurrentTheme(new SubstanceEbonyTheme());
+            UIManager.getDefaults().put("MenuBarUI", MenuBarUI.class.getName());
+*/
         } catch (Throwable e) {
             throw new Error(e);
         }
