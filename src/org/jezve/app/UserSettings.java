@@ -34,7 +34,7 @@ import java.io.*;
 
 public final class UserSettings {
 
-    /* Known issues (also on Mac for non admin):
+    /* Known issues (also on Mac for non-admin):
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4398496
      * and
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6572807
