@@ -27,15 +27,12 @@
 
 package org.jezve.app;
 
-import org.jezve.util.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.io.*;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
+
 
 public final class Icons {
 
@@ -62,7 +59,7 @@ public final class Icons {
 
     public static Image getImage(String name, String ext) {
         String location = "resources/" + name + "." + ext;
-        return ensureImage(Toolkit.getDefaultToolkit().createImage(readBytes(location)));
+        return ensureImage(Toolkit.getDefaultToolkit().createImage(Resources.readBytes(location)));
     }
 
     private static Image ensureImage(Image image) {
@@ -89,52 +86,7 @@ public final class Icons {
 
     public static byte[] getBytes(String name) {
         String location = "resources/" + name + ".png";
-        return readBytes(location);
-    }
-
-    public static InputStream getResourceAsStream(String location) {
-        try {
-            InputStream s;
-            java.net.URL url = Icons.class.getResource(location);
-            assert url != null : location;
-            String u = url.getFile();
-            // see: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4730642
-            if (u.toLowerCase().indexOf(".jar!/") >= 0) {
-                int sep = u.lastIndexOf('!');
-                String j = u.substring(0, sep);
-                if (j.startsWith("jar:file:")) {
-                    j = j.substring("jar:file:".length());
-                }
-                if (j.startsWith("file:")) {
-                    j = j.substring("file:".length());
-                }
-                String e = u.substring(sep + 2);
-                JarFile jar = new JarFile(j);
-                ZipEntry ze = jar.getEntry(e);
-                s = jar.getInputStream(ze);
-            } else {
-                s = Icons.class.getResourceAsStream(location);
-            }
-            assert s != null : location;
-            return s;
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-    }
-
-
-    private static byte[] readBytes(String location) {
-        InputStream s = null;
-        try {
-            s = getResourceAsStream(location);
-            assert  s != null : location;
-            assert s instanceof BufferedInputStream;
-            return IO.readFully(s);
-        } catch (IOException e) {
-            throw new Error(e);
-        } finally {
-            IO.close(s);
-        }
+        return Resources.readBytes(location);
     }
 
     private Icons() { }
@@ -192,4 +144,5 @@ public final class Icons {
             }
         }
     }
+
 }
