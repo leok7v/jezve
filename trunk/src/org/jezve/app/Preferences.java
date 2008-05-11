@@ -179,7 +179,7 @@ public final class Preferences extends JTabbedPane {
             add(new JLabel("Language:"));
             String locale = UserSettings.get("locale", getDefaultLocale().getLanguage());
             String current = "";
-            Set keys = Strings.getAllicationKeys();
+            Set keys = Strings.getApllicationKeys();
             ArrayList names = new ArrayList();
             for (Iterator i = keys.iterator(); i.hasNext(); ) {
                 String key = (String)i.next();
@@ -205,16 +205,6 @@ public final class Preferences extends JTabbedPane {
                     return getPreferredSize();
                 }
             };
-
-Font f = new JLabel().getFont();
-System.err.println(f);
-System.err.println(f.getFamily());
-System.err.println(f.getName());
-f = new JComboBox().getFont();
-System.err.println(f);
-System.err.println(f.getFamily());
-System.err.println(f.getName());
-
             languages.setSelectedItem(current);
             languages.setAlignmentX(Component.LEFT_ALIGNMENT);
             add(languages);

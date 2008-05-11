@@ -38,7 +38,7 @@ public final class Strings {
         return Collections.unmodifiableSet(keys);
     }
 
-    public static Set getAllicationKeys() {
+    public static Set getApllicationKeys() {
         return Collections.unmodifiableSet(appKeys);
     }
 
