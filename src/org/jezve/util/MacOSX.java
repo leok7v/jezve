@@ -39,7 +39,7 @@ public final class MacOSX {
     private static Method getFilename;
     private static Method findFolder;
     private static Object application;
-    private static boolean isPlafInitialized; // is plaf inititailized yet?
+    private static boolean isMacOSXInitialized; // is MacOSX inititailized yet?
     private static boolean isMetal;
 
     public static final int
@@ -101,7 +101,7 @@ public final class MacOSX {
     public static void setSystemProperties(String name, boolean metal) {
         // http://developer.apple.com/releasenotes/Java/java141/system_properties/chapter_4_section_3.html
         assert Platform.isMac();
-        assert !isPlafInitialized;
+        assert !isMacOSXInitialized;
         isMetal = metal;
         if (metal) {
             // GrowBox painting is broken in Java prio to 1.6
@@ -114,19 +114,24 @@ public final class MacOSX {
             System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
         }
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        System.setProperty("apple.awt.graphics.UseQuartz", "true"); // DDX?
         System.setProperty("apple.awt.textantialiasing","true");
         System.setProperty("com.apple.mrj.application.live-resize", "true");
         System.setProperty("com.apple.macos.smallTabs","false");
         // this must be set before first call to Mac OS X, otherwise it won't work:
         System.setProperty("com.apple.mrj.application.apple.menu.about.name", name);
         // also see: http://developer.apple.com/technotes/tn2007/tn2196.html
-        isPlafInitialized = true;
+
+        // the following will turn off Apple buggy code and will resort back to Sun's code path for java2d
+        System.setProperty("apple.awt.graphics.UseQuartz", "false"); // workaround for:
+        // http://lists.apple.com/archives/Java-dev/2007/Jun/msg00067.html
+        // http://lists.apple.com/archives/java-dev/2005/Nov/msg00222.html  (still exists May 2008, jdk1.5)
+
+        isMacOSXInitialized = true;
     }
 
     public static void init(Events dispatch) {
         assert Platform.isMac();
-        assert isPlafInitialized : "setSystemLookAndFeel must be already called";
+        assert isMacOSXInitialized : "setSystemLookAndFeel must be already called";
         try {
             Class classApplication = Class.forName("com.apple.eawt.Application");
             Class classListenner = Class.forName("com.apple.eawt.ApplicationListener");
@@ -160,7 +165,7 @@ public final class MacOSX {
     }
 
     public static String findFolder(int folderDomain, int folderType, boolean create) throws FileNotFoundException {
-        assert isPlafInitialized : "setSystemLookAndFeel must be already called";
+        assert isMacOSXInitialized : "setSystemLookAndFeel must be already called";
         if (findFolder == null) {
             Class[] sig = new Class[]{short.class, int.class, boolean.class};
             findFolder = Call.getDeclaredMethod("com.apple.eio.FileManager.findFolder", sig);
