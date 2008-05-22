@@ -9,4 +9,17 @@
 * Code is kept 1.4.2 java compatible (does not use generics yet) but
   no guarantees is made that it will behave correctly on 1.4.x JREs on any
   of the platform. Testing is done only for java >= 1.5.
-* see wiki for build instructions.  
+* see wiki for build instructions.
+
+---------------------------------------------------------------------------------
+
+jezve.svn tested with ~18,000 svn files from:
+http://websvn.kde.org/trunk/KDE/kdebase/runtime/pics/oxygen/scalable/
+(snapshot available from http://download.kde.org/download.php
+ you want stuff from directory: ..../kdebase/runtime/pics/oxygen/
+)
+
+http://download.openclipart.org/downloads/daily_SVG_snapshot.tar.bz2
+http://download.openclipart.org/downloads/0.18/openclipart-0.18-svgonly.zip
+
+---------------------------------------------------------------------------------
