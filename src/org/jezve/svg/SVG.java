@@ -1,6 +1,7 @@
 package org.jezve.svg;
 
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.*;
+
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
@@ -14,7 +15,8 @@ import java.io.*;
 import org.jezve.svg.batik.*;
 import org.jezve.svg.batik.MultipleGradientPaint; // java 1.6 disambiguashion
 import org.jezve.svg.batik.RadialGradientPaint; // java 1.6 disambiguashion
-import org.jezve.svg.batik.LinearGradientPaint; // java 1.6 disambiguashion
+import org.jezve.svg.batik.LinearGradientPaint;
+import org.jezve.util.*; // java 1.6 disambiguashion
 
 public class SVG {
 
@@ -42,7 +44,11 @@ public class SVG {
 
     public static SVG read(InputStream is) throws IOException {
         SVG svg = new SVG();
-        svg.load(new InputSource(svg.createDocumentInputStream(is)));
+        if (Platform.getJavaVersion() >= 1.5) {
+            svg.load(new InputSource(svg.createDocumentInputStream(is)));
+        } else {
+            svg.load(svg.createDocumentInputStream(is));
+        }
         return svg.getRoot() == null ? null : svg;
     }
 
@@ -58,7 +64,7 @@ public class SVG {
     }
 
     private InputStream createDocumentInputStream(InputStream is) throws IOException {
-        BufferedInputStream bin = new BufferedInputStream(is);
+        BufferedInputStream bin = new BufferedInputStream(is, 4096);
         bin.mark(2);
         int b0 = bin.read();
         int b1 = bin.read();
@@ -75,7 +81,7 @@ public class SVG {
         Loader loader = new Loader();
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setValidating(false);
-        factory.setNamespaceAware(true);
+        factory.setNamespaceAware(false);
         try {
             XMLReader reader = XMLReaderFactory.createXMLReader();
             reader.setEntityResolver(new EntityResolver() {
@@ -84,12 +90,31 @@ public class SVG {
                 }
             });
             reader.setContentHandler(loader);
+            reader.setFeature("http://xml.org/sax/features/validation", false);
             reader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
             reader.setFeature("http://xml.org/sax/features/namespaces", false);
             reader.parse(is);
         } catch (SAXParseException e) {
             throw new IOException(e.getMessage());
         } catch (SAXException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+
+    private void load(InputStream is) throws IOException {
+        Loader loader = new Loader();
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        factory.setValidating(false);
+        factory.setNamespaceAware(false);
+        try {
+            SAXParser reader = factory.newSAXParser();
+            reader.parse(is, loader);
+        } catch (SAXParseException e) {
+            throw new IOException(e.getMessage());
+        } catch (SAXException e) {
+            throw new IOException(e.getMessage());
+        } catch (ParserConfigurationException e) {
             throw new IOException(e.getMessage());
         }
     }

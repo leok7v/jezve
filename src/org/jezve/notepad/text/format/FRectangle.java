@@ -335,7 +335,7 @@ public class FRectangle extends Rectangle2D implements Shape, Serializable {
     }
 
     public String toString() {
-        return getClass().getSimpleName() + "[x=" + x + ",y=" + y + ",width=" + width + ",height=" +
+        return getClass().getName() + "[x=" + x + ",y=" + y + ",width=" + width + ",height=" +
                 height + "]";
     }
 }

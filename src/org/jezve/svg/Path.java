@@ -52,37 +52,37 @@ public class Path extends SVG.ShapeElement {
 
         private static class WorkaroundParser extends Parser.Double {
 
-            WorkaroundParser(String extraWhitespace) {
-                super(extraWhitespace);
+            WorkaroundParser(String str, String extraWhitespace) {
+                super(str, extraWhitespace);
             }
 
-            float nextFloat(String s) {
-                skipWhitespace(s);
-                if (position < s.length() - 2 &&
-                        s.charAt(position) == 'n' &&
-                        s.charAt(position + 1) == 'a' &&
-                        s.charAt(position + 2) == 'n') {
+            float nextFloat() {
+                skipWhitespace();
+                if (position < s.length - 2 &&
+                        s[position] == 'n' &&
+                        s[position + 1] == 'a' &&
+                        s[position + 2] == 'n') {
                     // special case "nan"
                     // inkscape:version="0.45+devel"
                     // nicubunu/nicubunu_RPG_map_symbols_Mine_2.svg
                     // M 74.422989,83.452273 C nan,nan nan,nan 79.019183,85.573593
                     // underflow?
-                    nextChar(s);
-                    nextChar(s);
-                    nextChar(s);
-                    skipWhitespace(s);
+                    nextChar();
+                    nextChar();
+                    nextChar();
+                    skipWhitespace();
                     return 0;
-                } else if (position < s.length() - 1 && s.charAt(position) == '-' &&
-                        !Parser.isDigit(s.charAt(position + 1))) {
+                } else if (position < s.length - 1 && s[position] == '-' &&
+                        !Parser.isDigit(s[position + 1])) {
                     // special case "-" as "-0"
                     // inkscape: 0.45.1+0.46pre1+devel
                     // mystica/mystica_15_hearts.svg
                     // 547.328,-61.733 537.031,- C 526.038,-95.605
-                    nextChar(s);
-                    skipWhitespace(s);
+                    nextChar();
+                    skipWhitespace();
                     return 0;
                 }
-                return super.nextFloat(s);
+                return super.nextFloat();
             }
 
         }
@@ -90,53 +90,54 @@ public class Path extends SVG.ShapeElement {
         static PathCommand[] parsePathList(String s) {
             LinkedList list = new LinkedList();
             char ch = 0;
-            WorkaroundParser parser = new WorkaroundParser(",");
+            WorkaroundParser parser = new WorkaroundParser(s, ",");
             while (parser.getPosition() < s.length()) {
-                parser.skipWhitespace(s);
+                parser.skipWhitespace();
                 if (parser.getPosition() >= s.length()) {
                     break;
                 }
                 char c = s.charAt(parser.getPosition());
                 if (Character.isLetter(c)) {
-                    ch = parser.nextChar(s);
+                    ch = parser.nextChar();
                     assert ch == c;
                 }
                 PathCommand cmd;
+                // TODO: it is possible to collapse Capital and Lower case labels
                 switch (ch) {
                     case'M':
-                        cmd = new MoveTo(false, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new MoveTo(false, parser.nextFloat(), parser.nextFloat());
                         break;
                     case'm':
-                        cmd = new MoveTo(true, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new MoveTo(true, parser.nextFloat(), parser.nextFloat());
                         break;
                     case'L':
-                        cmd = new LineTo(false, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new LineTo(false, parser.nextFloat(), parser.nextFloat());
                         break;
                     case'l':
-                        cmd = new LineTo(true, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new LineTo(true, parser.nextFloat(), parser.nextFloat());
                         break;
                     case'H':
-                        cmd = new Horizontal(false, parser.nextFloat(s));
+                        cmd = new Horizontal(false, parser.nextFloat());
                         break;
                     case'h':
-                        cmd = new Horizontal(true, parser.nextFloat(s));
+                        cmd = new Horizontal(true, parser.nextFloat());
                         break;
                     case'V':
-                        cmd = new Vertical(false, parser.nextFloat(s));
+                        cmd = new Vertical(false, parser.nextFloat());
                         break;
                     case'v':
-                        cmd = new Vertical(true, parser.nextFloat(s));
+                        cmd = new Vertical(true, parser.nextFloat());
                         break;
                     case'A':
                     case'a': {
                         // legacy commands: "A 5.868683 5.868652 0 1"
-                        parser.skipWhitespace(s);
+                        parser.skipWhitespace();
                         int ix = 0;
                         float[] a = new float[7];
                         while (parser.getPosition() < s.length()) {
                             char nx = s.charAt(parser.getPosition());
                             if (nx == '-' || nx == '+' || Parser.isDigit(nx)) {
-                                a[ix++] = parser.nextFloat(s);
+                                a[ix++] = parser.nextFloat();
                             } else {
                                 break;
                             }
@@ -150,34 +151,34 @@ public class Path extends SVG.ShapeElement {
                         break;
                     }
                     case'Q':
-                        cmd = new Quadratic(false, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s));
+                        cmd = new Quadratic(false, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat());
                         break;
                     case'q':
-                        cmd = new Quadratic(true, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s));
+                        cmd = new Quadratic(true, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat());
                         break;
                     case'T':
-                        cmd = new QuadraticSmooth(false, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new QuadraticSmooth(false, parser.nextFloat(), parser.nextFloat());
                         break;
                     case't':
-                        cmd = new QuadraticSmooth(true, parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new QuadraticSmooth(true, parser.nextFloat(), parser.nextFloat());
                         break;
                     case'C':
-                        cmd = new Cubic(false, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new Cubic(false, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat(), parser.nextFloat());
                         break;
                     case'c':
-                        cmd = new Cubic(true, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s), parser.nextFloat(s));
+                        cmd = new Cubic(true, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat(), parser.nextFloat());
                         break;
                     case'S':
-                        cmd = new CubicSmooth(false, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s));
+                        cmd = new CubicSmooth(false, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat());
                         break;
                     case's':
-                        cmd = new CubicSmooth(true, parser.nextFloat(s), parser.nextFloat(s), parser.nextFloat(s),
-                                parser.nextFloat(s));
+                        cmd = new CubicSmooth(true, parser.nextFloat(), parser.nextFloat(), parser.nextFloat(),
+                                parser.nextFloat());
                         break;
                     case'Z':
                     case'z':

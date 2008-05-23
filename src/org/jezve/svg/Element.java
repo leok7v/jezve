@@ -186,7 +186,7 @@ abstract class Element {
         String s = get(name);
         // ryanlerch/ryanlerch_clubhouse.svg
         // <missing-glyph id="missing-glyph693 horiz-adv-x="1.1346e-306" />
-        return s == null ? def : (int)Math.round(new Parser.Double().parse(s));
+        return s == null ? def : (int)Math.round(new Parser.Double(s, null).parse());
     }
 
     float[] getFloats(String name) {
@@ -202,14 +202,14 @@ abstract class Element {
             return null;
         }
         int ix = 0;
-        Parser.Double parser = new Parser.Double(",");
+        Parser.Double parser = new Parser.Double(s, ",");
         while (parser.getPosition() < s.length()) {
             if (ix >= buf.length) {
                 float[] b2 = new float[buf.length * 2];
                 System.arraycopy(buf, 0, b2, 0, ix);
                 buf = b2;
             }
-            buf[ix++] = parser.nextFloat(s);
+            buf[ix++] = parser.nextFloat();
         }
         float[] r1 = new float[ix];
         System.arraycopy(buf, 0, r1, 0, r1.length);
@@ -270,11 +270,9 @@ abstract class Element {
         return s != null ? parseRatio(s) : def;
     }
 
-    private static float parseRatio(String val) {
-        Parser.Double parser = new Parser.Double();
-        return val.charAt(val.length() - 1) == '%' ?
-            (float)parser.parse(val.substring(0, val.length() - 1)) :
-            (float)parser.parse(val);
+    private static float parseRatio(String s) {
+        Parser.Double parser = new Parser.Double(s, null);
+        return parser.nextFloat(); // ignore "%" at the end of float
     }
 
     float[] getStyleFloats(String name) {
@@ -329,32 +327,32 @@ abstract class Element {
         int ix = s.indexOf('(');
         assert ix > 0;
         String f = s.substring(0, ix).trim().toLowerCase();
-        Parser.Double parser = new Parser.Double(",");
         String vals = s.substring(ix + 1, s.length() - 1);
+        Parser.Double parser = new Parser.Double(vals, ",");
         if (f.equals("matrix")) {
-            at.concatenate(new AffineTransform(parser.nextDouble(vals), parser.nextDouble(vals),
-                    parser.nextDouble(vals), parser.nextDouble(vals),
-                    parser.nextDouble(vals), parser.nextDouble(vals)));
+            at.concatenate(new AffineTransform(parser.nextDouble(), parser.nextDouble(),
+                    parser.nextDouble(), parser.nextDouble(),
+                    parser.nextDouble(), parser.nextDouble()));
         } else if (f.equals("translate")) {
-            at.translate(parser.nextDouble(vals), parser.nextDouble(vals));
+            at.translate(parser.nextDouble(), parser.nextDouble());
         } else if (f.equals("scale")) {
-            double scale = parser.nextDouble(vals);
+            double scale = parser.nextDouble();
             if (parser.getPosition() < vals.length()) {
-                at.scale(scale, parser.nextDouble(vals));
+                at.scale(scale, parser.nextDouble());
             } else {
                 at.scale(scale, scale);
             }
         } else if (f.equals("rotate")) {
-            double alpha = parser.nextDouble(vals);
+            double alpha = parser.nextDouble();
             if (parser.getPosition() < vals.length()) {
-                at.rotate(Math.toRadians(alpha), parser.nextDouble(vals), parser.nextDouble(vals));
+                at.rotate(Math.toRadians(alpha), parser.nextDouble(), parser.nextDouble());
             } else {
                 at.rotate(Math.toRadians(alpha));
             }
         } else if (f.equals("skewx")) {
-            at.shear(Math.toRadians(parser.nextDouble(vals)), 0.0);
+            at.shear(Math.toRadians(parser.nextDouble()), 0.0);
         } else if (f.equals("skewy")) {
-            at.shear(0.0, Math.toRadians(parser.nextDouble(vals)));
+            at.shear(0.0, Math.toRadians(parser.nextDouble()));
         } else {
             throw new Error("unknown transformation: " + f);
         }

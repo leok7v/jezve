@@ -107,7 +107,8 @@ class TextView extends JComponent {
     }
 
     void updateTitle(double z) {
-        if (Notepad.frame != null) Notepad.frame.updateTitle(String.format("%.2f", z));
+        float f = Math.round(z * 100) / 100f;
+        if (Notepad.frame != null) Notepad.frame.updateTitle("" + f);
     }
 
     void adjustEditorPosition() {
