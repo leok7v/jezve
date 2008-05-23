@@ -130,7 +130,7 @@ public final class UserSettings {
 
     public static boolean getBoolean(String key, boolean value) {
         String r = (String)getUser().get(key);
-        return r == null ? value : Boolean.parseBoolean(r);
+        return r == null ? value : "true".equals(r);
     }
 
     private static synchronized Properties getUser() {

@@ -32,7 +32,8 @@ package org.jezve.svg;
 /** There are two reasons for collection of number parsers to be implemented:
  *  1. Double, Float, Long, Integere, Short parseXXX methods all allocate
  *     a new instance of a boxing class which in tight long loops can produce
- *     significant load on garbadge collector.
+ *     significant load on garbadge collector (for example of long list of
+ *     Path elements see e.g. kword.svgz).
  *  2. It is desirable to be able to parse numbers and stop at the end of number
  *     syntax reporting back stop position. Otherwise it is necessary to scan a string
  *     before calling e.g. Double.parseDouble basically doing the same thing twice.
@@ -40,7 +41,7 @@ package org.jezve.svg;
  *     is an added convinience to generic parsing.
  */
 
-class Parser {
+public class Parser {
 
     /** Parser.isDigit is different from Character.isDigit.
      *  It's true only for Unicode Latin plane numbers.
@@ -60,19 +61,19 @@ class Parser {
         return ' ' == ch || '\n' == ch || '\r' == ch || '\t' == ch;
     }
 
-    static int skipWhitespace(String s, int pos) {
-        int len = s.length();
-        while (pos < len && isWhitespace(s.charAt(pos))) {
+    static int skipWhitespace(char[] s, int pos) {
+        int len = s.length;
+        while (pos < len && isWhitespace(s[pos])) {
             pos++;
         }
         return pos;
     }
 
-    static int skipWhitespace(String s, int pos, String extra) {
-        int len = s.length();
+    static int skipWhitespace(char[] s, int pos, String extra) {
+        int len = s.length;
         while (pos < len) {
-            char ch = s.charAt(pos);
-            if (!isWhitespace(s.charAt(pos)) && (extra == null || extra.indexOf(ch) < 0)) {
+            char ch = s[pos];
+            if (!isWhitespace(ch) && (extra == null || extra.indexOf(ch) < 0)) {
                 break;
             }
             pos++;
@@ -109,39 +110,48 @@ class Parser {
 
         protected int position;
         protected String whitespaces;
-
-        String getWhitespaces() {
-            return whitespaces;
-        }
-
-        void setWhitespaces(String whitespaces) {
-            this.whitespaces = whitespaces;
-        }
+        protected char[] s;
 
         int getPosition() {
             return position;
         }
 
-        void skipWhitespace(String s) {
-            position = Parser.skipWhitespace(s, position, whitespaces);
+        protected final int skipWhitespace() {
+            return position = whitespaces == null ?
+                    Parser.skipWhitespace(s, position) :
+                    Parser.skipWhitespace(s, position, whitespaces);
         }
 
-        char nextChar(String s) {
-            return s.charAt(position++);
+        protected final int skipWhitespace(int pos) {
+            return position = whitespaces == null ?
+                    Parser.skipWhitespace(s, pos) :
+                    Parser.skipWhitespace(s, pos, whitespaces);
+        }
+
+        char nextChar() {
+            return s[position++];
         }
 
         void rewind() {
             position = 0;
         }
 
+        boolean isMinValue(int pos0, int pos1, char[] min) {
+            int k = 0;
+            for (int i = pos0; i < pos1; i++) {
+                if (s[i] != min[k++]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
     }
 
     static class Double extends Base {
 
-        Double() {
-        }
-
-        Double(String extraWhitespaces) {
+        Double(String str, String extraWhitespaces) {
+            s = str.toCharArray();
             whitespaces = extraWhitespaces;
         }
 
@@ -155,13 +165,13 @@ class Parser {
          * @param start position
          * @return resulting parsed double value
          */
-        double parse(String s, int start) {
-            int len = s.length();
+        double parse(int start) {
+            int len = s.length;
             int pos = Parser.skipWhitespace(s, start, whitespaces);
             char ch;
             boolean negative = false;
             if (pos < len) {
-                ch = s.charAt(pos);
+                ch = s[pos];
                 if (ch == '-') {
                     negative = true;
                     pos++;
@@ -169,21 +179,21 @@ class Parser {
                     pos++;
                 }
             }
-            if (pos >= len || !isDigit(s.charAt(pos)) && s.charAt(pos) != '.') {
+            if (pos >= len || !isDigit(ch = s[pos]) && ch != '.') {
                 position = pos;
                 throw new NumberFormatException("not a digit");
             }
             double v = 0;
-            while (pos < len && isDigit(ch = s.charAt(pos))) {
+            while (pos < len && isDigit(ch = s[pos])) {
                 int d = ch - '0';
                 v = (v * 10) + d;
                 pos++;
             }
-            if (pos < len && s.charAt(pos) == '.') {
+            if (pos < len && s[pos] == '.') {
                 pos++;
                 double ex = 1;
                 double m = 0;
-                while (pos < len && isDigit(ch = s.charAt(pos))) {
+                while (pos < len && isDigit(ch = s[pos])) {
                     int d = ch - '0';
                     ex /= 10;
                     m = m + d * ex;
@@ -191,11 +201,11 @@ class Parser {
                 }
                 v = v + m;
             }
-            if (pos < len && (s.charAt(pos) == 'e' || s.charAt(pos) == 'E')) {
+            if (pos < len && ((ch = s[pos]) == 'e' || ch == 'E')) {
                 pos++;
                 boolean n = false;
                 if (pos < len) {
-                    ch = s.charAt(pos);
+                    ch = s[pos];
                     if (ch == '-') {
                         n = true;
                         pos++;
@@ -204,7 +214,7 @@ class Parser {
                     }
                 }
                 int exp = 0;
-                while (pos < len && isDigit(ch = s.charAt(pos))) {
+                while (pos < len && isDigit(ch = s[pos])) {
                     int d = ch - '0';
                     exp = exp * 10 + d;
                     if (exp > 325) { // see http://en.wikipedia.org/wiki/IEEE_754-1985
@@ -217,7 +227,7 @@ class Parser {
                     v = v * pow10(n ? -exp : exp);
                 }
             }
-            position = Parser.skipWhitespace(s, pos, whitespaces);
+            skipWhitespace(pos);
             return negative ? -v : v;
         }
 
@@ -225,42 +235,42 @@ class Parser {
          * @param s string to parse
          * @return resulting parsed double value
          */
-        double parse(String s) {
-            return parse(s, 0);
+        double parse() {
+            return parse(0);
         }
 
-        double nextDouble(String s) {
-            return parse(s, getPosition());
+        double nextDouble() {
+            return parse(getPosition());
         }
 
-        float nextFloat(String s) {
-            return (float)nextDouble(s);
+        float nextFloat() {
+            return (float)nextDouble();
         }
 
     }
 
     static class Long extends Base {
 
-        private static final String Long_MIN_VALUE = ("" + java.lang.Long.MIN_VALUE).substring(1);
+        private static final char[] Long_MIN_VALUE =
+                (("" + java.lang.Long.MIN_VALUE).substring(1)).toCharArray();
 
-        Long() {
-        }
-
-        Long(String extraWhitespaces) {
+        Long(String str, String extraWhitespaces) {
+            s = str.toCharArray();
             whitespaces = extraWhitespaces;
         }
+
         /** Parses decimal text representation of long value
          * @param s string to parse
          * @param start position
          * @return resulting parsed long value
          */
-        long parse(String s, int start) {
-            int len = s.length();
+        long parse(int start) {
+            int len = s.length;
             int pos = Parser.skipWhitespace(s, start, whitespaces);
             char ch;
             boolean negative = false;
             if (pos < len) {
-                ch = s.charAt(pos);
+                ch = s[pos];
                 if (ch == '-') {
                     negative = true;
                     pos++;
@@ -268,21 +278,21 @@ class Parser {
                     pos++;
                 }
             }
-            if (pos >= len || !isDigit(s.charAt(pos))) {
+            if (pos >= len || !isDigit(s[pos])) {
                 position = pos;
                 throw new NumberFormatException("not a digit");
             }
-            while (pos < len && s.charAt(pos) == '0') {
+            while (pos < len && s[pos] == '0') {
                 pos++;
             }
             int pos0 = pos;
             long v = 0;
-            while (pos < len && isDigit(ch = s.charAt(pos))) {
+            while (pos < len && isDigit(ch = s[pos])) {
                 int d = ch - '0';
                 if (v > (java.lang.Long.MAX_VALUE - d) / 10) {
                     // special case
-                    if (negative && s.substring(pos0, pos + 1).equals(Long_MIN_VALUE)
-                            && (pos + 1 == len || !isDigit(s.charAt(pos + 1)))) {
+                    if (negative && isMinValue(pos0, pos + 1, Long_MIN_VALUE) &&
+                            (pos + 1 == len || !isDigit(s[pos + 1]))) {
                         position = pos + 1;
                         return java.lang.Long.MIN_VALUE;
                     }
@@ -292,7 +302,7 @@ class Parser {
                 v = (v * 10) + d;
                 pos++;
             }
-            position = Parser.skipWhitespace(s, pos, whitespaces);
+            skipWhitespace(pos);
             return negative ? -v : v;
         }
 
@@ -300,17 +310,17 @@ class Parser {
          * @param s string to parse
          * @return resulting parsed long value
          */
-        long parse(String s) {
-            return parse(s, 0);
+        long parse() {
+            return parse(0);
         }
 
-        long parseHex(String s, int start) {
-            int len = s.length();
-            int pos = start = Parser.skipWhitespace(s, start, whitespaces);
+        long parseHex(int start) {
+            int len = s.length;
+            int pos = start = skipWhitespace(start);
             int pos0 = -1;
             long v = 0;
             while (pos < len) {
-                char ch = s.charAt(pos);
+                char ch = s[pos];
                 int d;
                 if (ch >= '0' && ch <= '9') {
                     d = ch - '0';
@@ -333,23 +343,26 @@ class Parser {
             if (pos == start) {
                 throw new NumberFormatException("not a digit");
             }
-            position = Parser.skipWhitespace(s, pos, whitespaces);
+            skipWhitespace(pos);
             return v;
         }
 
-        double nextLong(String s) {
-            return parse(s, getPosition());
+        long parseHex() {
+            return parseHex(0);
+        }
+
+        double nextLong() {
+            return parse(getPosition());
         }
     }
 
-    static class Integer extends Base {
+    static class Int extends Base {
 
-        private static final String Int_MIN_VALUE = ("" + java.lang.Integer.MIN_VALUE).substring(1);
+        private static final char[] Int_MIN_VALUE =
+                (("" + java.lang.Integer.MIN_VALUE).substring(1)).toCharArray();
 
-        Integer() {
-        }
-
-        Integer(String extraWhitespaces) {
+        Int(String str, String extraWhitespaces) {
+            s = str.toCharArray();
             whitespaces = extraWhitespaces;
         }
 
@@ -358,13 +371,13 @@ class Parser {
          * @param start position
          * @return resulting parsed long value
          */
-        int parse(String s, int start) {
-            int len = s.length();
-            int pos = Parser.skipWhitespace(s, start, whitespaces);
+        int parse(int start) {
+            int len = s.length;
+            int pos = skipWhitespace(start);
             char ch;
             boolean negative = false;
             if (pos < len) {
-                ch = s.charAt(pos);
+                ch = s[pos];
                 if (ch == '-') {
                     negative = true;
                     pos++;
@@ -372,21 +385,21 @@ class Parser {
                     pos++;
                 }
             }
-            if (pos >= len || !isDigit(s.charAt(pos))) {
+            if (pos >= len || !isDigit(s[pos])) {
                 position = pos;
                 throw new NumberFormatException("not a digit");
             }
-            while (pos < len && s.charAt(pos) == '0') {
+            while (pos < len && s[pos] == '0') {
                 pos++;
             }
             int pos0 = pos;
             int v = 0;
-            while (pos < len && isDigit(ch = s.charAt(pos))) {
+            while (pos < len && isDigit(ch = s[pos])) {
                 int d = ch - '0';
                 if (v > (java.lang.Integer.MAX_VALUE - d) / 10) {
                     // special case
-                    if (negative && s.substring(pos0, pos + 1).equals(Int_MIN_VALUE)
-                            && (pos + 1 == len || !isDigit(s.charAt(pos + 1)))) {
+                    if (negative && isMinValue(pos0, pos + 1, Int_MIN_VALUE)
+                            && (pos + 1 == len || !isDigit(s[pos + 1]))) {
                         position = pos + 1;
                         return java.lang.Integer.MIN_VALUE;
                     }
@@ -396,7 +409,7 @@ class Parser {
                 v = (v * 10) + d;
                 pos++;
             }
-            position = Parser.skipWhitespace(s, pos, whitespaces);
+            skipWhitespace(pos);
             return negative ? -v : v;
         }
 
@@ -404,17 +417,17 @@ class Parser {
          * @param s string to parse
          * @return resulting parsed long value
          */
-        int parse(String s) {
-            return parse(s, 0);
+        int parse() {
+            return parse(0);
         }
 
-        int parseHex(String s, int start) {
-            int len = s.length();
-            int pos = start = Parser.skipWhitespace(s, start, whitespaces);
+        int parseHex(int start) {
+            int len = s.length;
+            int pos = start = skipWhitespace(start);
             int pos0 = -1;
             int v = 0;
             while (pos < len) {
-                char ch = s.charAt(pos);
+                char ch = s[pos];
                 int d;
                 if (ch >= '0' && ch <= '9') {
                     d = ch - '0';
@@ -437,21 +450,25 @@ class Parser {
             if (pos == start) {
                 throw new NumberFormatException("not a digit");
             }
-            position = Parser.skipWhitespace(s, pos, whitespaces);
+            skipWhitespace(pos);
             return v;
         }
 
-        double nextInteger(String s) {
-            return parse(s, getPosition());
+        int parseHex() {
+            return parseHex(0);
+        }
+
+        int nextInteger() {
+            return parse(getPosition());
         }
     }
 
 /*
-    static void test() {
+   public static void test() {
 
         {
-            Parser.Double parser = new Parser.Double();
             String s = "M 1 2 3 1.2 1e34 1.234E-35 1.e+13 -2.1579186e-005,-7.0710768 L -7.0710894,-8.9383918e-006 L -2.1579186e-005,7.0710589 L 7.0710462,-8.9383918e-006 L -2.1579186e-005,-7.0710768 0.1234567890123456789012345678901234567890e-290 0.1234567890123456789012345678901234567890e+290 z ";
+            Parser.Double parser = new Parser.Double(s, ",");
 //          Debug.traceln(s);
             StringTokenizer st = new StringTokenizer(s, ", ");
             int pos = 0;
@@ -459,11 +476,11 @@ class Parser {
                 while (pos < s.length() && Character.isLetter(s.charAt(pos))) {
                     pos++;
                 }
-                pos = Parser.skipWhitespace(s, pos, ",");
+                pos = parser.skipWhitespace(pos);
                 if (pos >= s.length()) {
                     break;
                 }
-                double d = parser.parse(s, pos);
+                double d = parser.parse(pos);
                 String t = st.nextToken().trim();
                 while (!t.startsWith("+") && !t.startsWith("-") && !isDigit(t.charAt(0))) {
                     t = st.nextToken();
@@ -472,27 +489,27 @@ class Parser {
                 assert Math.abs(d - p) <= 1e-18;
 //              Debug.traceln(d + " " + t + " " + p + " " + Math.abs(d - p));
                 pos = parser.getPosition();
-                pos = Parser.skipWhitespace(s, pos, ",");
+                pos = parser.skipWhitespace(pos);
             }
 //          Debug.traceln("" + parser.parse("0.1234567890123456789012345678901234567890"));
 
             boolean thrown = false;
             try {
-                parser.parse("+123e+340");
+                new Parser.Double("+123e+340", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse("+123e-340");
+                new Parser.Double("+123e-340", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse(" +*123.456 ");
+                new Parser.Double(" +*123.456 ", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
@@ -500,47 +517,46 @@ class Parser {
         }
 
         {
-            Parser.Long parser = new Parser.Long();
-            long x1 = parser.parseHex("00000001234567890ABCDEF", 0);
+            long x1 = new Parser.Long("00000001234567890ABCDEF", null).parseHex();
             assert x1 == 0x1234567890ABCDEFL;
-            long x2 = parser.parseHex("0000000F234567890ABCDEF", 0);
+            long x2 = new Parser.Long("0000000F234567890ABCDEF", null).parseHex();
             assert x2 == 0xF234567890ABCDEFL;
             boolean thrown = false;
             try {
-                parser.parseHex("  1234567812345678F ", 0);
+                new Parser.Long("  1234567812345678F ", null).parseHex();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parseHex(" *1234 ", 0);
+                new Parser.Long(" *1234 ", null).parseHex();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
 
-            long x3 = parser.parse("9223372036854775807");
+            long x3 = new Parser.Long("9223372036854775807", null).parse();
             assert x3 == java.lang.Long.MAX_VALUE;
-            long x4 = parser.parse("-000000000000009223372036854775808");
+            long x4 = new Parser.Long("-000000000000009223372036854775808", null).parse();
             assert x4 == java.lang.Long.MIN_VALUE;
             thrown = false;
             try {
-                parser.parse("+9223372036854775808");
+                new Parser.Long("+9223372036854775808", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse("-9223372036854775809");
+                new Parser.Long("-9223372036854775809", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse("+*123");
+                new Parser.Long("+*123", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
@@ -548,55 +564,52 @@ class Parser {
         }
 
         {
-            Parser.Integer parser = new Parser.Integer();
-            long x1 = parser.parseHex("000000012345678", 0);
+            int x1 = new Parser.Int("000000012345678", null).parseHex();
             assert x1 == 0x12345678;
-            long x2 = parser.parseHex("0000000F2345678", 0);
+            int x2 = new Parser.Int("0000000F2345678", null).parseHex();
             assert x2 == 0xF2345678;
             boolean thrown = false;
             try {
-                parser.parseHex("  12345678F ", 0);
+                new Parser.Int("  12345678F ", null).parseHex();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parseHex(" *1234 ", 0);
+                new Parser.Int(" *1234 ", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
 
-            long x3 = parser.parse("2147483647");
+            int x3 = new Parser.Int("2147483647", null).parse();
             assert x3 == java.lang.Integer.MAX_VALUE;
-            long x4 = parser.parse("-000000000000002147483648");
+            int x4 = new Parser.Int("-000000000000002147483648", null).parse();
             assert x4 == java.lang.Integer.MIN_VALUE;
             thrown = false;
             try {
-                parser.parse("+2147483648");
+                new Parser.Int("+2147483648", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse("-2147483649");
+                new Parser.Int("-2147483649", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
             thrown = false;
             try {
-                parser.parse("+*123");
+                new Parser.Int("+*123", null).parse();
             } catch (NumberFormatException x) {
                 thrown = true;
             }
             assert thrown;
         }
-
     }
-
 */
 
 }

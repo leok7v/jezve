@@ -22,17 +22,11 @@ class Units {
     private static final float PPI = 72; // pixels per inch
 
     Units(String s) {
-        int k = s.length() - 1;
-        while (Character.isLetter(s.charAt(k)) || s.charAt(k) == '%') {
-            k--;
-        }
-        Parser.Double parser = new Parser.Double();
-        if (k == s.length() - 1) {
-            this.value = (float)parser.parse(s);
-            kind = KIND_UNITLESS;
-        } else {
-            String suffix = s.substring(k + 1).toLowerCase();
-            this.value = (float)parser.parse(s.substring(0, k + 1));
+        Parser.Double parser = new Parser.Double(s, null);
+        this.value = parser.nextFloat();
+        int k = parser.getPosition();
+        if (k < s.length()) {
+            String suffix = s.substring(k).toLowerCase();
             kind = getType(suffix);
         }
     }

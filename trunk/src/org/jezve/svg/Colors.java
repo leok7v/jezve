@@ -166,8 +166,6 @@ class Colors {
     }
 
     static Color parseColor(String s) {
-        Parser.Integer intParser = new Parser.Integer(",");
-        Parser.Double doubleParser = new Parser.Double(",");
         if (s.charAt(0) == '#') {
             String x = s.substring(1);
             if (x.length() == 3) {
@@ -176,21 +174,22 @@ class Colors {
                 c6[4] = c6[5] = x.charAt(2);
                 x = new String(c6);
             }
-            return new Color(intParser.parseHex(x, 0));
+            return new Color(new Parser.Int(x, null).parseHex());
         } else {
             if (s.startsWith("rgb(") && s.endsWith(")")) {
                 // guci22/guci22_Mountains.svg
                 String c = s.substring(4, s.length() - 1);
                 if (c.indexOf('%') >= 0) {
-                    float r = (float)doubleParser.parse(c, 0);
-                    assert c.charAt(doubleParser.getPosition()) == '%';
-                    doubleParser.nextChar(s);
-                    float g = (float)doubleParser.parse(c, doubleParser.getPosition());
-                    assert c.charAt(doubleParser.getPosition()) == '%';
-                    doubleParser.nextChar(s);
-                    float b = (float)doubleParser.parse(c, doubleParser.getPosition());
-                    assert c.charAt(doubleParser.getPosition()) == '%';
-                    doubleParser.nextChar(s);
+                    Parser.Double parser = new Parser.Double(c, ",");
+                    float r = parser.nextFloat();
+                    assert c.charAt(parser.getPosition()) == '%';
+                    parser.nextChar();
+                    float g = parser.nextFloat();
+                    assert c.charAt(parser.getPosition()) == '%';
+                    parser.nextChar();
+                    float b = parser.nextFloat();
+                    assert c.charAt(parser.getPosition()) == '%';
+                    parser.nextChar();
                     assert 0 <= r && r <= 100 : s;
                     assert 0 <= g && g <= 100 : s;
                     assert 0 <= b && b <= 100 : s;
@@ -198,9 +197,10 @@ class Colors {
                                      Math.round(g * 255 / 100),
                                      Math.round(b * 255 / 100));
                 } else {
-                    int r = intParser.parse(c, 0);
-                    int g = intParser.parse(c, intParser.getPosition());
-                    int b = intParser.parse(c, intParser.getPosition());
+                    Parser.Int intParser = new Parser.Int(c, ",");
+                    int r = intParser.nextInteger();
+                    int g = intParser.nextInteger();
+                    int b = intParser.nextInteger();
                     return new Color(r, g, b);
                 }
             } else {

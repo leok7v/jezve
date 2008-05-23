@@ -18,6 +18,9 @@ public class SVGTest {
     private static final int W = 64; // 640;
     private static final int H = 64; // 480;
     private static int counter;
+    private static long maxBaselineMemory;
+    private static long maxLoadMemory;
+    private static long maxRenderMemory;
     private static long maxLoadTime;
     private static long maxRenderTime;
     private static long sumLoadTime;
@@ -84,6 +87,8 @@ public class SVGTest {
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 svg.render(g2d);
                 time = Time.microseconds() - time;
+                long used3 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                maxRenderMemory = Math.max(used3, maxRenderMemory);
                 System.out.println("rendered(" + fco + "): " + time + " usecs.");
                 sumRenderTime += time;
                 maxRenderTime = Math.max(maxRenderTime, time);
@@ -96,6 +101,8 @@ public class SVGTest {
         }
 
         private static BufferedImage getImage() {
+            long used1 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            maxBaselineMemory = Math.max(used1, maxBaselineMemory);
             try {
                 String fileName = null;
                 if (fco < files.size()) {
@@ -114,6 +121,8 @@ public class SVGTest {
                     sumLoadTime += time;
                     maxLoadTime = Math.max(maxLoadTime, time);
                     counter++;
+                    long used2 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                    maxLoadMemory = Math.max(used2, maxLoadMemory);
                     return render(W, H, svg);
                 } else {
                     return null;
@@ -132,6 +141,7 @@ public class SVGTest {
                 g2d.setColor(Color.RED);
                 g2d.draw(new Rectangle(0, 0, W + 2, H + 2));
             }
+            System.gc();
             Misc.invokeLater(1, new Runnable() {
                 public void run() {
                     fco++;
@@ -148,7 +158,13 @@ public class SVGTest {
                         System.out.println(counter + " files: max load time " +
                                 maxLoadTime / 1000 + " max render time " + maxRenderTime / 1000 +
                                 " avg load: " + sumLoadTime / (1000 * counter) +
-                                " avg render: " + sumRenderTime / (1000 * counter) + " milliseconds");
+                                " avg render: " + sumRenderTime / (1000 * counter) +
+                                " milliseconds. " +
+                                "\n\tmemory used: baseline " + (maxBaselineMemory / 1024) +
+                                " load " + (maxLoadMemory / 1024) +
+                                " render " + (maxRenderMemory / 1024) +
+                                " KB. "
+                        );
                     }
                 }
             });
@@ -178,7 +194,6 @@ public class SVGTest {
             if (f.getName().startsWith(".")) {
                 // do not go into hidden dirs
             } else if (f.isDirectory()) {
-                System.err.println(f.getAbsolutePath());
                 getFiles(f, files);
             } else if (!skip(f.getAbsolutePath())) {
                 String fname = f.getName().toLowerCase();
@@ -247,6 +262,7 @@ public class SVGTest {
             // http://lists.apple.com/archives/Java-dev/2007/Jun/msg00067.html
             // http://lists.apple.com/archives/java-dev/2005/Nov/msg00222.html
         }
+        // Parser.test();
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Test();
