@@ -290,10 +290,10 @@ class Text extends SVG.ShapeElement {
         void addShape(GeneralPath addShape) {
             if (x != null) {
                 cursorX = x[0];
-                cursorY = y[0];
+                cursorY = y == null ? 0 : y[0];
             } else if (dx != null) {
                 cursorX += dx[0];
-                cursorY += dy[0];
+                cursorY += dy == null ? 0 : dy[0];
             }
             String fontFamily = getStyleString("font-family");
             float fontSize = getStyleFloatUnits("font-size", 12f);
@@ -371,7 +371,7 @@ class Text extends SVG.ShapeElement {
             float fontSize = getFloatUnits("font-size", 12f);
             SVG.Font font = getRoot().getFont(fontFamily);
             if (font == null) {
-                System.err.println("Could not load font");
+//              System.err.println("Failed to load font: " + fontFamily);
                 java.awt.Font sysFont = new java.awt.Font(fontFamily, java.awt.Font.PLAIN, (int)fontSize);
                 renderSysFont(g, sysFont);
                 return;

@@ -128,7 +128,11 @@ public class SVGTest {
                     return null;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                if (e.getCause() != null) {
+                    e.getCause().printStackTrace();
+                } else {
+                    e.printStackTrace();
+                }
                 return null;
             }
         }
@@ -155,7 +159,8 @@ public class SVGTest {
                     if (fco < files.size()) {
                         repaint();
                     } else {
-                        System.out.println(counter + " files: max load time " +
+                        System.out.println(counter + " files:\n" +
+                                "\tmax load time " +
                                 maxLoadTime / 1000 + " max render time " + maxRenderTime / 1000 +
                                 " avg load: " + sumLoadTime / (1000 * counter) +
                                 " avg render: " + sumRenderTime / (1000 * counter) +

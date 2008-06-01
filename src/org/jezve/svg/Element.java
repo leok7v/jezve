@@ -286,6 +286,11 @@ abstract class Element {
 
     Units getUnits(String name) {
         String s = get(name);
+        if (s != null && s.endsWith("%") && s.indexOf(',') >= 0) {
+            // special case: openclipart-0.18-svgonly/clipart/office/telephone/mobile_phone_01.svg
+            // stop offset="17,4 %"
+            s = s.replace(',', '.');
+        }
         return s != null ? parseUnits(s) : null;
     }
 
@@ -294,7 +299,7 @@ abstract class Element {
         return Units.convertUnitsToPixels(number.getKind(), number.getValue());
     }
 
-    private static Units parseUnits(String val) {
+    static Units parseUnits(String val) {
         if (val == null) {
             return null;
         }
