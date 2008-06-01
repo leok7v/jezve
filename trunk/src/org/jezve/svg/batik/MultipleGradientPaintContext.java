@@ -18,6 +18,8 @@
  */
 package org.jezve.svg.batik;
 
+import org.jezve.util.Platform;
+
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
@@ -1203,18 +1205,41 @@ abstract class MultipleGradientPaintContext implements PaintContext {
         return Math.round(output * 255.0f);
     }
 
+    private static boolean checked;
+
+    private static void once() {
+        if (Platform.isMac()) {
+            assert "false".equals(System.getProperty("apple.awt.graphics.UseQuartz"));
+        }
+        checked = true;
+    }
+
+
     /**
      * Superclass getRaster...
      */
     public final Raster getRaster(int x, int y, int w, int h) {
-//      assert "false".equals(System.getProperty("apple.awt.graphics.UseQuartz"));
-        assert w <= 4096 && h <= 4096; // paranoia
+        if (!checked) {
+            once();
+        }
+        // clipart.org
+        // 2008_May_daily_SVG_snapshot/Anonymous/Anonymous_flaf_of_Portugal.svg
+        // w x h = 2979 x 4962
+        // 2008_May_daily_SVG_snapshot/carlitos/carlitos_Cartoon_Landscape.svg
+        // w x h = 630 x 9332
+        if (Platform.getJavaVersion() >= 1.5) {
+            assert w * h <= 1024 * 1024; // paranoia
+        }
 //      System.err.println("MultipleGradientPaint.getRaster(" + x + "," + y + " " + w + "x" + h + ")");
         if (w == 0 || h == 0) {
-            return null;
+            // on Mac OSX Java 1.5 null returned here leads to NPE DirectColorModel.isCompatibleRaster rendering:
+            // Oxygen-pics-runtime-kdebase/kdebase/runtime/pics/oxygen/scalable/categories/preferences-desktop.svgz
+            if (!Platform.isMac()) {
+                return null;
+            }
+            w = Math.max(1, w);
+            h = Math.max(1, h);
         }
-
-        //
         //  If working raster is big enough, reuse it. Otherwise,
         //  build a large enough new one.
         //

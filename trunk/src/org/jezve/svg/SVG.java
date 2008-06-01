@@ -15,8 +15,9 @@ import java.io.*;
 import org.jezve.svg.batik.*;
 import org.jezve.svg.batik.MultipleGradientPaint; // java 1.6 disambiguashion
 import org.jezve.svg.batik.RadialGradientPaint; // java 1.6 disambiguashion
-import org.jezve.svg.batik.LinearGradientPaint;
-import org.jezve.util.*; // java 1.6 disambiguashion
+import org.jezve.svg.batik.LinearGradientPaint; // java 1.6 disambiguashion
+
+import org.jezve.util.Platform;
 
 public class SVG {
 
@@ -44,11 +45,7 @@ public class SVG {
 
     public static SVG read(InputStream is) throws IOException {
         SVG svg = new SVG();
-        if (Platform.getJavaVersion() >= 1.5) {
-            svg.load(new InputSource(svg.createDocumentInputStream(is)));
-        } else {
-            svg.load(svg.createDocumentInputStream(is));
-        }
+        svg.load(new InputSource(createDocumentInputStream(is)));
         return svg.getRoot() == null ? null : svg;
     }
 
@@ -63,17 +60,50 @@ public class SVG {
         return bi1x1;
     }
 
-    private InputStream createDocumentInputStream(InputStream is) throws IOException {
+    private static BufferedInputStream createDocumentInputStream(InputStream is) throws IOException {
         BufferedInputStream bin = new BufferedInputStream(is, 4096);
-        bin.mark(2);
+        bin.mark(3);
         int b0 = bin.read();
         int b1 = bin.read();
+        int b2 = bin.read();
         bin.reset();
         // Check for gzip magic number
         if ((b1 << 8 | b0) == GZIPInputStream.GZIP_MAGIC) {
-            return new GZIPInputStream(bin);
-        } else {
-            return bin;
+            bin = new BufferedInputStream(new GZIPInputStream(bin), 4096);
+            bin.mark(3);
+            b0 = bin.read();
+            b1 = bin.read();
+            b2 = bin.read();
+            bin.reset();
+        }
+        if (Platform.getJavaVersion() < 1.5) {
+            if (b0 == 0xEF && b1 == 0xBB && b2 == 0xBF)  { // BOM = 0xEFBBBF
+                long k = bin.skip(3);
+                assert k == 3;
+            } else if (b0 == 0xFE && b1 == 0xFF || b0 == 0xFF && b1 == 0xFE) { // Unicode-16 BOM
+                long k = bin.skip(2);
+                assert k == 2;
+            }
+        }
+        return bin;
+    }
+
+    private void setFeature(Object o, String feature, boolean value) {
+        // see: http://www.saxproject.org/apidoc/org/xml/sax/package-summary.html#package_description
+        try {
+            if (o instanceof SAXParserFactory) {
+                ((SAXParserFactory)o).setFeature(feature, value);
+            } else {
+                ((XMLReader)o).setFeature(feature, value);
+            }
+        } catch (SAXNotSupportedException e) {
+//          System.err.println("Not supported: " + feature);
+            // ignore
+        } catch (SAXNotRecognizedException e) {
+            // ignore
+//          System.err.println("Not recognized: " + feature);
+        } catch (ParserConfigurationException e) {
+            throw new Error(e);
         }
     }
 
@@ -82,39 +112,40 @@ public class SVG {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setValidating(false);
         factory.setNamespaceAware(false);
+        boolean j14 = Platform.getJavaVersion() < 1.5;
+        if (!j14) {
+            setFeature(factory, "http://xml.org/sax/features/resolve-dtd-uris", false);
+            setFeature(factory, "http://xml.org/sax/features/external-general-entities", false);
+            setFeature(factory, "http://xml.org/sax/features/external-parameter-entities", false);
+        }
+        XMLReader reader;
         try {
-            XMLReader reader = XMLReaderFactory.createXMLReader();
+            reader = j14 ?
+                    factory.newSAXParser().getXMLReader() :
+                    XMLReaderFactory.createXMLReader();
             reader.setEntityResolver(new EntityResolver() {
                 public InputSource resolveEntity(String publicId, String systemId) {
                     return DUMMY; // to prevent going out to network reading DTD
                 }
             });
             reader.setContentHandler(loader);
-            reader.setFeature("http://xml.org/sax/features/validation", false);
-            reader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-            reader.setFeature("http://xml.org/sax/features/namespaces", false);
+            setFeature(reader, "http://xml.org/sax/features/namespace-prefixes", false);
+            setFeature(reader, "http://xml.org/sax/features/namespaces", false);
+            setFeature(reader, "http://xml.org/sax/features/validation", false);
+            if (!j14) {
+                setFeature(reader, "http://xml.org/sax/features/resolve-dtd-uris", false);
+                setFeature(reader, "http://xml.org/sax/features/external-general-entities", false);
+                setFeature(reader, "http://xml.org/sax/features/external-parameter-entities", false);
+            }
             reader.parse(is);
         } catch (SAXParseException e) {
+            e.printStackTrace();
             throw new IOException(e.getMessage());
         } catch (SAXException e) {
-            throw new IOException(e.getMessage());
-        }
-    }
-
-
-    private void load(InputStream is) throws IOException {
-        Loader loader = new Loader();
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        factory.setValidating(false);
-        factory.setNamespaceAware(false);
-        try {
-            SAXParser reader = factory.newSAXParser();
-            reader.parse(is, loader);
-        } catch (SAXParseException e) {
-            throw new IOException(e.getMessage());
-        } catch (SAXException e) {
+            e.printStackTrace();
             throw new IOException(e.getMessage());
         } catch (ParserConfigurationException e) {
+            e.printStackTrace();
             throw new IOException(e.getMessage());
         }
     }
@@ -195,7 +226,7 @@ public class SVG {
             nodeClasses.put("symbol", Symbol.class);
             nodeClasses.put("text", Text.class);
             nodeClasses.put("title", Title.class);
-            nodeClasses.put("tspan", Text.class);
+            nodeClasses.put("tspan", Text.Tspan.class);
             nodeClasses.put("use", Use.class);
 
             ignoreClasses.add("midpointstop");
@@ -589,7 +620,14 @@ public class SVG {
                 } else {
                     g.setPaint(paintFill);
                     if (shape instanceof GeneralPath) {
-                        g.fill(shape);
+                        try {
+                            g.fill(shape);
+                        } catch (OutOfMemoryError ignore) {
+                            // ignore OSXSurfaceData bugs (see MultipleGradientContext.getRaster() notes)
+                            fillElement = null;
+                            fillOpacity = 0;
+//                          System.err.println("OutOfMemory");
+                        }
                     } else if (shape instanceof Rectangle) {
                         g.fill(shape);
                     } else  if (shape instanceof Rectangle2D) {
