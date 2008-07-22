@@ -13,7 +13,7 @@
 
 ---------------------------------------------------------------------------------
 
-jezve.svn tested with ~18,000 svn files from:
+jezve.svg tested with ~18,000 svg files from:
 http://websvn.kde.org/trunk/KDE/kdebase/runtime/pics/oxygen/scalable/
 (snapshot available from http://download.kde.org/download.php
  you want stuff from directory: ..../kdebase/runtime/pics/oxygen/
