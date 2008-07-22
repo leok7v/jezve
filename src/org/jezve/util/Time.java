@@ -53,7 +53,7 @@ public final class Time {
                     return n * 1000000L / ticksPerSecond;
                 }
             }
-            return System.currentTimeMillis() * 1000000;
+            return System.currentTimeMillis() * 1000;
         }
     }
 
