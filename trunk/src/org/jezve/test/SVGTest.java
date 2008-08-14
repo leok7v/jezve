@@ -263,6 +263,7 @@ public class SVGTest {
 
     public static void main(String[] args) {
         if (Platform.isMac()) {
+            MacOSX.setSystemProperties("SVGText", true);
             System.setProperty("apple.awt.graphics.UseQuartz", "false"); // workaround for:
             // http://lists.apple.com/archives/Java-dev/2007/Jun/msg00067.html
             // http://lists.apple.com/archives/java-dev/2005/Nov/msg00222.html
