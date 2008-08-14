@@ -264,15 +264,21 @@ public final class IO {
 
     public static File getDesktop() {
         if (desktop == null) {
-            Method getDesktop =
-                    Platform.isWindows() ?
-                    Call.getDeclaredMethod("sun.awt.shell.Win32ShellFolderManager2.getDesktop", Call.VOID) :
-                    Platform.isMac() ?
-                    Call.getDeclaredMethod("com.zipeg.mac.MacSpecific.getDeskFolder", Call.VOID) :
-                    null;
-            desktop = (File)Call.call(getDesktop, null, Call.NONE);
-            if (desktop == null) {
-                desktop = new File(getHome(), "Desktop");
+            if (Platform.isMac()) {
+                try {
+                    String desk = MacOSX.findFolder(MacOSX.kUserDomain, MacOSX.kDesktopFolderType, true);
+                    desktop = new File(desk);
+                } catch (IOException e) {
+                    Debug.printStackTrace(e);
+                    desktop = new File(getHome(), "Desktop");
+                }
+            } else {
+                assert Platform.isWindows();
+                Method getDesktop = Call.getDeclaredMethod("sun.awt.shell.Win32ShellFolderManager2.getDesktop", Call.VOID);
+                desktop = (File)Call.call(getDesktop, null, Call.NONE);
+                if (desktop == null) {
+                    desktop = new File(getHome(), "Desktop");
+                }
             }
         }
         assert desktop.isDirectory() : desktop;
