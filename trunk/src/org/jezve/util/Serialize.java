@@ -27,6 +27,27 @@
 
 package org.jezve.util;
 
+/** Serialize.Encoder/Serialize.Decoder are not universal. They are simple analog of
+ *  java.beans.XMLEncoder/XMLDecoder. It is just about 10 times faster and produces
+ *  (on average) 10 times smaller binary output. It is not as sophisticated as
+ *  http://hessian.caucho.com/
+ *  WARNING: Seriallizer treats all Collections and Maps in a generic way and does NOT
+ *  serialize the fields of class that extend HashMap, HashSet, ArrayList and alike.
+ *  <code>
+ *  class MyMap extends HashMap {
+ *      private Foo bar; // will NOT be serialized
+ *  }
+ *  </code>
+ *  (if you are curious the reason for it is that I cannot or do not want to
+ *  distinguish between HashMap fields and your fields, not to mention that
+ *  extending HashMap is not such a swell idea - unless you know what you are doing
+ *  and support equality axioms by implemention your own equals and hashCode).
+ *
+ *  Simple data structures like Point and Rectangle are serialized even is accessors
+ *  are not implemented for private fields.
+ *  The transient fields and fields that are not accessible for any reason are ignored.
+ */
+
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
@@ -56,66 +77,6 @@ public class Serialize {
             super(cause);
         }
 
-    }
-
-    private static Object newInstance(Class c) throws SerializationError {
-        try {
-            return c.newInstance();
-        } catch (Throwable e) {
-            throw new SerializationError(e);
-        }
-    }
-
-    private static Object getField(Field f, Object o) throws SerializationError {
-        try {
-            return f.get(o);
-        } catch (Throwable e) {
-            throw new SerializationError(e);
-        }
-    }
-
-    private static void setField(Field f, Object o, Object v) throws SerializationError {
-        try {
-            f.set(o, v);
-        } catch (Throwable e) {
-            throw new SerializationError(e);
-        }
-    }
-
-    private static Map getFields(Object o) {
-        synchronized (c2f) {
-            Class c = o.getClass();
-            Map m = (Map)c2f.get(c);
-            if (m == null) {
-                m = new HashMap();
-                getFields(c, o, m);
-                c2f.put(c, m);
-            }
-            return m;
-        }
-    }
-
-    private static void getFields(Class c, Object o, Map map) {
-        if (c != Object.class && !c.isInterface()) {
-            Field[] fields = c.getDeclaredFields();
-            for (int i = 0; i < fields.length; i++) {
-                Field f = fields[i];
-                try {
-                    f.setAccessible(true);
-                    getField(f, o);
-                } catch (Throwable x) {
-                    continue; // field is not accessible: ignore it
-                }
-                int m = f.getModifiers();
-                boolean aes = f.isAccessible() && !f.isEnumConstant() && !f.isSynthetic();
-                boolean fst = Modifier.isFinal(m) || Modifier.isStatic(m) || Modifier.isTransient(m);
-                if (aes && !fst) {
-                    assert !map.containsKey(f.getName()) : "duplicate field: " + f.getName();
-                    map.put(f.getName(), f);
-                }
-            }
-            getFields(c.getSuperclass(), o, map);
-        }
     }
 
     public static final class Encoder {
@@ -684,6 +645,66 @@ public class Serialize {
             }
         }
 
+    }
+
+    private static Object newInstance(Class c) throws SerializationError {
+        try {
+            return c.newInstance();
+        } catch (Throwable e) {
+            throw new SerializationError(e);
+        }
+    }
+
+    private static Object getField(Field f, Object o) throws SerializationError {
+        try {
+            return f.get(o);
+        } catch (Throwable e) {
+            throw new SerializationError(e);
+        }
+    }
+
+    private static void setField(Field f, Object o, Object v) throws SerializationError {
+        try {
+            f.set(o, v);
+        } catch (Throwable e) {
+            throw new SerializationError(e);
+        }
+    }
+
+    private static Map getFields(Object o) {
+        synchronized (c2f) {
+            Class c = o.getClass();
+            Map m = (Map)c2f.get(c);
+            if (m == null) {
+                m = new HashMap();
+                getFields(c, o, m);
+                c2f.put(c, m);
+            }
+            return m;
+        }
+    }
+
+    private static void getFields(Class c, Object o, Map map) {
+        if (c != Object.class && !c.isInterface()) {
+            Field[] fields = c.getDeclaredFields();
+            for (int i = 0; i < fields.length; i++) {
+                Field f = fields[i];
+                try {
+                    f.setAccessible(true);
+                    getField(f, o);
+                } catch (Throwable x) {
+                    continue; // field is not accessible: ignore it
+                }
+                int m = f.getModifiers();
+                boolean aes = f.isAccessible() && !f.isEnumConstant() && !f.isSynthetic();
+                boolean fst = Modifier.isFinal(m) || Modifier.isStatic(m) || Modifier.isTransient(m);
+                if (aes && !fst) {
+                    assert !map.containsKey(f.getName()) : "duplicate field: " + f.getName();
+                    map.put(f.getName(), f);
+                }
+            }
+            getFields(c.getSuperclass(), o, map);
+        }
     }
 
 }
