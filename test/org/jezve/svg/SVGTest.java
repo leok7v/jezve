@@ -1,6 +1,5 @@
-package org.jezve.test;
+package org.jezve.svg;
 
-import org.jezve.svg.*;
 import org.jezve.util.*;
 
 import javax.swing.*;
@@ -246,7 +245,10 @@ public class SVGTest {
                 cd = new File(System.getProperty("user.home"), "code/svg_test/test");
                 files.addAll(getFiles(cd));
             }
+
+            files.addAll(getFiles(new File("C:\\jezve\\test\\svg")));
 /*
+            files.addAll(getFiles(new File(System.getProperty("user.home"), "Desktop/SVG_TEST_DATA")));
             files.addAll(getFiles(new File(System.getProperty("user.home"), "Desktop/Oxygen-pics-runtime-kdebase")));
             files.addAll(getFiles(new File(System.getProperty("user.home"), "Desktop/2008_May_daily_SVG_snapshot")));
             files.addAll(getFiles(new File(System.getProperty("user.home"), "Desktop/openclipart-0.18-svgonly")));
