@@ -30,6 +30,7 @@ package org.jezve.util;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+@SuppressWarnings({"UnnecessaryUnboxing"})
 public final class Time {
 
     private static Object sun_misc_Perf;

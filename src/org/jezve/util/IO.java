@@ -48,6 +48,7 @@ import java.lang.reflect.*;
  * to your application logic before calling close.
  */
 
+@SuppressWarnings({"unchecked","ForLoopReplaceableByForEach"})
 public final class IO {
 
     private static File desktop;
@@ -61,7 +62,7 @@ public final class IO {
                 s.close();
             }
         } catch (IOException e) {
-            new Error(e);
+            throw new Error(e);
         }
     }
 
@@ -74,7 +75,7 @@ public final class IO {
                 s.close();
             }
         } catch (IOException e) {
-            new Error(e);
+            throw new Error(e);
         }
     }
 
@@ -87,7 +88,7 @@ public final class IO {
                 r.close();
             }
         } catch (IOException e) {
-            new Error(e);
+            throw new Error(e);
         }
     }
 
@@ -100,7 +101,7 @@ public final class IO {
                 w.close();
             }
         } catch (IOException e) {
-            new Error(e);
+            throw new Error(e);
         }
     }
 

@@ -32,6 +32,7 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
+@SuppressWarnings({"unchecked", "ForLoopReplaceableByForEach", "UnnecessaryUnboxing"})
 public final class Web {
 
     public static void openUrl(String url) throws IOException {

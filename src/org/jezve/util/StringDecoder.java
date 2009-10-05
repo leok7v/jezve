@@ -45,6 +45,7 @@ import java.util.HashMap;
  *
  * Leo: intialization on-demand; simplified custom int map  to Map.
  */
+@SuppressWarnings({"unchecked","ForLoopReplaceableByForEach","UnnecessaryUnboxing"})
 public final class StringDecoder {
 
     private static final String[][] BASIC_ARRAY = {
