@@ -34,6 +34,7 @@ import java.util.List;
 import java.awt.*;
 import java.lang.reflect.*;
 
+@SuppressWarnings({"unchecked"})
 public final class Events {
 
     private static List listeners = new LinkedList();
@@ -78,6 +79,7 @@ public final class Events {
      */
     public static void collectCommandState(Map state) {
         Object[] p = new Object[]{state};
+        //noinspection ForLoopReplaceableByForEach
         for (Iterator i = listeners.iterator(); i.hasNext(); ) {
             Object listener = i.next();
             try {
@@ -96,6 +98,7 @@ public final class Events {
 
     private static void invokeMethod(String method, Class[] signature, Object[] params) {
         Object[] clone = listeners.toArray();
+        //noinspection ForLoopReplaceableByForEach
         for (int i = 0; i < clone.length; i++) {
             Object listener = clone[i];
             try {

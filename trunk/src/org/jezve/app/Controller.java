@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.File;
 import java.awt.event.WindowEvent;
 
+@SuppressWarnings({"unchecked"})
 public final class Controller {
 
     /** method to enable commands state

@@ -30,6 +30,7 @@ package org.jezve.app;
 import org.jezve.util.Platform;
 import org.jezve.util.Misc;
 import org.jezve.util.MacOSX;
+import org.jezve.app.resources.Icons;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -37,6 +38,7 @@ import java.awt.*;
 import java.util.*;
 import java.io.File;
 
+@SuppressWarnings({"unchecked"})
 public final class TopFrame extends JFrame {
 
     private static final Dimension SMALLEST = new Dimension(340, 240);
@@ -119,6 +121,7 @@ public final class TopFrame extends JFrame {
     public void setModified(boolean b) {
         // http://developer.apple.com/technotes/tn2007/tn2196.html
         if (Platform.isMac()) {
+            //noinspection UnnecessaryBoxing
             getRootPane().putClientProperty("Window.documentModified", Boolean.valueOf(b));
         }
     }
@@ -134,6 +137,7 @@ public final class TopFrame extends JFrame {
     }
 
     public static void repaintMenuBars() {
+        //noinspection ForLoopReplaceableByForEach
         for (Iterator i = frames.iterator(); i.hasNext(); ) {
             TopFrame f = (TopFrame)i.next();
             f.getJMenuBar().repaint();
@@ -144,6 +148,7 @@ public final class TopFrame extends JFrame {
     }
 
     public static void setEnabledAll(boolean b) {
+        //noinspection ForLoopReplaceableByForEach
         for (Iterator i = frames.iterator(); i.hasNext(); ) {
             TopFrame f = (TopFrame)i.next();
             f.setEnabled(b);
@@ -158,6 +163,7 @@ public final class TopFrame extends JFrame {
             Locale.setDefault(loc);
             JComponent.setDefaultLocale(loc);
             Commands.reset();
+            //noinspection ForLoopReplaceableByForEach
             for (Iterator i = frames.iterator(); i.hasNext(); ) {
                 TopFrame f = (TopFrame)i.next();
                 if (!f.getLocale().equals(loc)) {
@@ -173,6 +179,7 @@ public final class TopFrame extends JFrame {
     }
 
     private static void adjustComponentOrientation() {
+        //noinspection ForLoopReplaceableByForEach
         for (Iterator i = frames.iterator(); i.hasNext(); ) {
             TopFrame f = (TopFrame)i.next();
             applyComponentOrientation(f, ComponentOrientation.getOrientation(Locale.getDefault()));
@@ -185,6 +192,7 @@ public final class TopFrame extends JFrame {
             return;
         }
         if (Platform.isMac()) {
+            //noinspection UnnecessaryBoxing
             getRootPane().putClientProperty("apple.awt.windowShadow.revalidateNow",
                                             new Double(Math.random()));
         }

@@ -28,6 +28,7 @@
 package org.jezve.app;
 
 import org.jezve.util.*;
+import org.jezve.app.resources.Strings;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -35,6 +36,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+@SuppressWarnings({"unchecked"})
 public final class Preferences extends JTabbedPane {
 
     private boolean canceled;
@@ -181,6 +183,7 @@ public final class Preferences extends JTabbedPane {
             String current = "";
             Set keys = Strings.getApllicationKeys();
             ArrayList names = new ArrayList();
+            //noinspection ForLoopReplaceableByForEach
             for (Iterator i = keys.iterator(); i.hasNext(); ) {
                 String key = (String)i.next();
                 if (key.startsWith("locale.")) {

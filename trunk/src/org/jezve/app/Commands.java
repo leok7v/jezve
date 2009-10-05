@@ -28,6 +28,8 @@
 package org.jezve.app;
 
 import org.jezve.util.*;
+import org.jezve.app.resources.Strings;
+import org.jezve.app.resources.Icons;
 
 import java.util.*;
 import java.awt.event.*;
@@ -37,6 +39,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.accessibility.*;
 
+@SuppressWarnings({"ForLoopReplaceableByForEach", "unchecked"})
 public final class Commands {
 
     private static boolean enabled = true;

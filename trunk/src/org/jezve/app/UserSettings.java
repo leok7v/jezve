@@ -32,6 +32,7 @@ import org.jezve.util.*;
 import java.util.*;
 import java.io.*;
 
+@SuppressWarnings({"UnnecessaryBoxing"})
 public final class UserSettings {
 
     /* Known issues (also on Mac for non-admin):

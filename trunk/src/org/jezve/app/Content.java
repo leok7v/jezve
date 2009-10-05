@@ -34,6 +34,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+@SuppressWarnings({"unchecked"})
 public class Content extends JComponent {
 
     private boolean popupTrigger;
