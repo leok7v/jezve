@@ -28,12 +28,14 @@
 package org.jezve.app;
 
 import org.jezve.util.*;
+import org.jezve.app.resources.Strings;
 
 import javax.swing.*;
 import java.util.*;
 import java.io.File;
 import java.awt.*;
 
+@SuppressWarnings({"unchecked"})
 public final class Main implements Runnable {
 
     public static final String APPLICATION = Strings.getApplicationString("application.label");
