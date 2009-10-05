@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.io.*;
 
+@SuppressWarnings({"unchecked","ForLoopReplaceableByForEach"})
 public final class Debug {
 
     private static boolean debug = true; // to debug static initialization

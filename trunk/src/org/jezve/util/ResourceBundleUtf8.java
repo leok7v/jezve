@@ -32,6 +32,7 @@ import java.util.*;
 
 // see: http://www.thoughtsabout.net/blog/archives/000044.html
 
+@SuppressWarnings({"unchecked"})
 public abstract class ResourceBundleUtf8 {
 
     public static ResourceBundle getBundle(String baseName) {

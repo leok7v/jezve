@@ -30,7 +30,7 @@ package org.jezve.util;
 public final class StringEncoder {
 
     public static String encodeBase64(String s) {
-        return new sun.misc.BASE64Encoder().encode(s.getBytes());
+        return com.miginfocom.base64.Base64.encodeToString(s.getBytes(), false);
     }
 
     private StringEncoder() { /* no instantiation */ }

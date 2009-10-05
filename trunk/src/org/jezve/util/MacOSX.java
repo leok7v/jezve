@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.io.*;
 
+@SuppressWarnings({"UnnecessaryBoxing"})
 public final class MacOSX {
 
     private static Method setEnabledPreferencesMenu;
