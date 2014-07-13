@@ -31,7 +31,7 @@ package org.jezve.util;
  *  java.beans.XMLEncoder/XMLDecoder. It is just about 10 times faster and produces
  *  (on average) 10 times smaller binary output. It is not as sophisticated as
  *  http://hessian.caucho.com/
- *  WARNING: Seriallizer treats all Collections and Maps in a generic way and does NOT
+ *  WARNING: Serializer treats all Collections and Maps in a generic way and does NOT
  *  serialize the fields of class that extend HashMap, HashSet, ArrayList and alike.
  *  <code>
  *  class MyMap extends HashMap {
@@ -41,7 +41,7 @@ package org.jezve.util;
  *  (if you are curious the reason for it is that I cannot or do not want to
  *  distinguish between HashMap fields and your fields, not to mention that
  *  extending HashMap is not such a swell idea - unless you know what you are doing
- *  and support equality axioms by implemention your own equals and hashCode).
+ *  and support equality axioms by implementation your own equals and hashCode).
  *
  *  Simple data structures like Point and Rectangle are serialized even is accessors
  *  are not implemented for private fields.
