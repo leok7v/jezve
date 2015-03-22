@@ -1,0 +1,1 @@
+Small "pots" of code (mostly java code) - that has no other place to live. I am well aware of jezve/cezve/ibrik mudded terminology issues (see http://en.wikipedia.org/wiki/Ibrik) which only makes this place even more appropriate for its goals.
